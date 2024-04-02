@@ -59,13 +59,12 @@ print(tempo)
 # S = librosa.feature.melspectrogram(y=y, sr=sr)
 # S_DB = librosa.amplitude_to_db(S, ref=np.max)
 # plt.figure(figsize = (16, 6))
-# librosa.display.specshow(S_DB, sr=sr, hop_length=512, x_axis = 'time', y_axis = 'log', cmap = 'cool') # 0 - 80 это децебелы 
+# librosa.display.specshow(S_DB, sr=sr, hop_length=512, x_axis = 'time', y_axis = 'log', cmap = 'cool') # 0 - 80 is decibels
 # plt.colorbar()
 # plt.title("123", fontsize = 23)
 # plt.show()
 
-
-'''spectral_rolloff величина помогает разделить жанры, например метал значение 5000-7000, классика ~2900'''
+'''The spectral_rolloff value helps to separate genres, for example metal value 5000-7000, classical ~2900'''
 spectral_rolloff = librosa.feature.spectral_rolloff(y=audio_file, sr=sr)[0]
 print(np.mean(spectral_rolloff))
 
