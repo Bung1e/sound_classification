@@ -8,6 +8,8 @@ from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from keras.optimizers import Adam
 from keras.utils import to_categorical
 import tensorflow as tf
+from keras.regularizers import l2
+
 
 data = pd.read_csv('new.csv')
 
@@ -32,14 +34,14 @@ train_mels = train_mels[..., np.newaxis]
 test_mels = test_mels[..., np.newaxis]
 
 model = Sequential([
-    Conv2D(32, (3, 3), activation='relu', input_shape=(train_mels.shape[1], train_mels.shape[2], 1)),
+    Conv2D(32, (3, 3), activation='relu', input_shape=(128, 1293, 1)),
     MaxPooling2D(2, 2),
     Conv2D(64, (3, 3), activation='relu'),
     MaxPooling2D(2, 2),
     Flatten(),
     Dense(128, activation='relu'),
     Dropout(0.5),
-    Dense(10, activation='softmax', kernel_regularizer=tf.keras.regularizers.l2(0.01))
+    Dense(10, activation='softmax', kernel_regularizer=l2(0.01))
 ])
 
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
