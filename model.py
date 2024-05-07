@@ -36,6 +36,7 @@ test_mels = test_mels[..., np.newaxis]
 model = Sequential([
     Conv2D(32, (3, 3), activation='relu', input_shape=(128, 1293, 1)),
     MaxPooling2D(2, 2),
+    Dropout(0.3),
     Conv2D(64, (3, 3), activation='relu'),
     MaxPooling2D(2, 2),
     Flatten(),
@@ -44,14 +45,31 @@ model = Sequential([
     Dense(10, activation='softmax', kernel_regularizer=l2(0.01))
 ])
 
+# model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# model.fit(train_mels, train_labels, epochs=15, validation_data=(test_mels, test_labels))
+
+# score = model.evaluate(test_mels, test_labels)
+# print('Test accuracy:', score[1])
+
+model = Sequential([
+    Conv2D(6, (5, 5), activation='relu', padding='same', input_shape=(128, 1293, 1)),
+    MaxPooling2D(2, 2),
+    Conv2D(16, (5, 5), activation='relu', padding='valid'),
+    MaxPooling2D(2, 2),
+    Flatten(),
+    Dense(120, activation='relu'),
+    Dense(84, activation='relu'),
+    Dropout(0.5),
+    Dense(10, activation='softmax', kernel_regularizer=l2(0.01))
+])
+
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-
+model.summary()
 model.fit(train_mels, train_labels, epochs=15, validation_data=(test_mels, test_labels))
 
 score = model.evaluate(test_mels, test_labels)
 print('Test accuracy:', score[1])
+# model.save('genre_classification_model.h5')
 
-model.save('genre_classification_model.h5')
-
-model.save_weights('genre_classification_checkpoint/')
+# model.save_weights('genre_classification_checkpoint/')
