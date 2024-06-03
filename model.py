@@ -1,12 +1,10 @@
-import pandas as pd
 import numpy as np
-import os
-from keras.utils import to_categorical
 import librosa
-import librosa.display
-import keras 
+from keras.models import load_model
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+from config import CLIENT_ID, CLIENT_SECRET
+
 # data = pd.read_csv('new.csv')
 
 # train_data, test_data = train_test_split(data, test_size=0.2, random_state=42)
@@ -70,11 +68,24 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 # model.save_weights('genre_classification_checkpoint/')
 
-def features_extractor(file):
-    audio, sample_rate = librosa.load(file)
-    mfccs_features = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=40) 
-    mfccs_scaled_features = np.mean(mfccs_features.T,axis=0)
-    return mfccs_scaled_features
+import numpy as np
+import librosa
+from keras.models import load_model
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+from config import CLIENT_ID, CLIENT_SECRET
+from pydub import AudioSegment
+import os
+ffmpeg_path = "C:/ffmpeg/bin/ffmpeg.exe"
+ffprobe_path = "C:/ffmpeg/bin/ffprobe.exe"
+
+AudioSegment.converter = ffmpeg_path
+AudioSegment.ffprobe = ffprobe_path
+
+client_credentials_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
+sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+
+model = load_model('Vadzim/saved_models/audio_classification.keras')
 
 class_names = {
     0: 'blues',
@@ -87,13 +98,52 @@ class_names = {
     7: 'pop',
     8: 'reggae',
     9: 'rock'
-}
+} 
 
-model = keras.models.load_model('Vadzim/saved_models/audio_classification.keras')
-filename = "2222.wav"
-mfccs_scaled_features = features_extractor(filename).reshape(1, -1)
-predicted_label = model.predict(mfccs_scaled_features)
-predicted_class = np.argmax(predicted_label, axis=1)[0]
-predicted_genre = class_names[predicted_class]
+def features_extractor(filename):
+    audio, sample_rate = librosa.load(filename, sr=None, duration=30)
+    mfccs_features = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=40)
+    mfccs_scaled_features = np.mean(mfccs_features.T, axis=0)
+    return mfccs_scaled_features
 
-print(f"{predicted_genre}")
+def predict_genre(file_name):
+    mfccs_scaled_features = features_extractor(file_name).reshape(1, -1)
+    predicted_label = model.predict(mfccs_scaled_features)
+    predicted_class = np.argmax(predicted_label, axis=1)[0]
+    return class_names[predicted_class]
+
+def get_top_songs(genre, limit=5):
+    result = sp.search(q=f'genre:{genre}', type='playlist', limit=1)
+    if result['playlists']['items']:
+        playlist_id = result['playlists']['items'][0]['id']
+        playlist_tracks = sp.playlist_tracks(playlist_id)
+        tracks = playlist_tracks['items']
+        all_tracks = []
+        
+        while playlist_tracks['next']:
+            playlist_tracks = sp.next(playlist_tracks)
+            tracks.extend(playlist_tracks['items'])
+        
+        for item in tracks:
+            track = item['track']
+            all_tracks.append({
+                'name': track['name'],
+                'artist': track['artists'][0]['name'],
+                'popularity': track['popularity'],
+                'url': track['external_urls']['spotify']
+            })
+        
+        top_tracks = sorted(all_tracks, key=lambda x: x['popularity'], reverse=True)[:limit]
+        return top_tracks
+    else:
+        return []
+
+def convert_to_wav(file_path):
+    try:
+        audio = AudioSegment.from_file(file_path)
+        wav_path = file_path.rsplit('.', 1)[0] + '.wav'
+        audio.export(wav_path, format='wav')
+        return wav_path
+    except Exception as e:
+        print(f"Error converting file: {e}")
+        return None
