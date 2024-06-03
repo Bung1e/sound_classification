@@ -4,16 +4,9 @@ from keras.models import load_model
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from config import CLIENT_ID, CLIENT_SECRET
-
-
-import numpy as np
-import librosa
-from keras.models import load_model
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
-from config import CLIENT_ID, CLIENT_SECRET
 from pydub import AudioSegment
 import os
+
 ffmpeg_path = "C:/ffmpeg/bin/ffmpeg.exe"
 ffprobe_path = "C:/ffmpeg/bin/ffprobe.exe"
 
