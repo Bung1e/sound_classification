@@ -1,4 +1,3 @@
-
 import telebot
 from telebot import types
 from model import predict_genre, get_top_songs, convert_to_wav

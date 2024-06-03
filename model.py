@@ -5,68 +5,6 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from config import CLIENT_ID, CLIENT_SECRET
 
-# data = pd.read_csv('new.csv')
-
-# train_data, test_data = train_test_split(data, test_size=0.2, random_state=42)
-
-# def load_mel_spectrogram(file_path):
-#     return np.load(file_path)
-
-# le = LabelEncoder()
-# train_labels = le.fit_transform(train_data['label'])
-# test_labels = le.transform(test_data['label'])
-# train_labels = to_categorical(train_labels, num_classes=10)
-# test_labels = to_categorical(test_labels, num_classes=10)
-
-# train_mels = np.array([load_mel_spectrogram(f) for f in train_data['melspectrogram_data']])
-# test_mels = np.array([load_mel_spectrogram(f) for f in test_data['melspectrogram_data']])
-
-# train_mels = train_mels / np.max(train_mels)
-# test_mels = test_mels / np.max(test_mels)
-
-# train_mels = train_mels[..., np.newaxis]
-# test_mels = test_mels[..., np.newaxis]
-
-# model = Sequential([
-#     Conv2D(32, (3, 3), activation='relu', input_shape=(128, 1293, 1)),
-#     MaxPooling2D(2, 2),
-#     Dropout(0.3),
-#     Conv2D(64, (3, 3), activation='relu'),
-#     MaxPooling2D(2, 2),
-#     Flatten(),
-#     Dense(128, activation='relu'),
-#     Dropout(0.5),
-#     Dense(10, activation='softmax', kernel_regularizer=l2(0.01))
-# ])
-
-# model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-# model.fit(train_mels, train_labels, epochs=15, validation_data=(test_mels, test_labels))
-
-# score = model.evaluate(test_mels, test_labels)
-# print('Test accuracy:', score[1])
-
-# model = Sequential([
-#     Conv2D(6, (5, 5), activation='relu', padding='same', input_shape=(128, 1293, 1)),
-#     MaxPooling2D(2, 2),
-#     Conv2D(16, (5, 5), activation='relu', padding='valid'),
-#     MaxPooling2D(2, 2),
-#     Flatten(),
-#     Dense(120, activation='relu'),
-#     Dense(84, activation='relu'),
-#     Dropout(0.5),
-#     Dense(10, activation='softmax', kernel_regularizer=l2(0.01))
-# ])
-
-# model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-# model.summary()
-# model.fit(train_mels, train_labels, epochs=15, validation_data=(test_mels, test_labels))
-
-# score = model.evaluate(test_mels, test_labels)
-# print('Test accuracy:', score[1])
-# model.save('genre_classification_model.h5')
-
-# model.save_weights('genre_classification_checkpoint/')
 
 import numpy as np
 import librosa
@@ -119,20 +57,21 @@ def get_top_songs(genre, limit=5):
         playlist_tracks = sp.playlist_tracks(playlist_id)
         tracks = playlist_tracks['items']
         all_tracks = []
-        
+
         while playlist_tracks['next']:
             playlist_tracks = sp.next(playlist_tracks)
             tracks.extend(playlist_tracks['items'])
-        
+
         for item in tracks:
-            track = item['track']
-            all_tracks.append({
-                'name': track['name'],
-                'artist': track['artists'][0]['name'],
-                'popularity': track['popularity'],
-                'url': track['external_urls']['spotify']
-            })
-        
+            track = item.get('track')
+            if track:
+                all_tracks.append({
+                    'name': track.get('name', 'Unknown'),
+                    'artist': track['artists'][0]['name'] if track['artists'] else 'Unknown Artist',
+                    'popularity': track.get('popularity', 0),
+                    'url': track['external_urls']['spotify'] if 'external_urls' in track else 'No URL'
+                })
+
         top_tracks = sorted(all_tracks, key=lambda x: x['popularity'], reverse=True)[:limit]
         return top_tracks
     else:
