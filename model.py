@@ -1,17 +1,13 @@
 import numpy as np
 import librosa
 from keras.models import load_model
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
+
 from config import CLIENT_ID, CLIENT_SECRET
 from pydub import AudioSegment
 import os
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
 
-ffmpeg_path = "C:/ffmpeg/bin/ffmpeg.exe"
-ffprobe_path = "C:/ffmpeg/bin/ffprobe.exe"
-
-AudioSegment.converter = ffmpeg_path
-AudioSegment.ffprobe = ffprobe_path
 
 client_credentials_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
